@@ -1,0 +1,213 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+  cursor: default;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Dim layer + crosshair */
+#dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 16, 0.42);
+  cursor: crosshair;
+}
+
+/* Selection rectangle */
+#sel {
+  position: fixed;
+  border: 2px solid #4da3ff;
+  border-radius: 6px;
+  background: rgba(77, 163, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(4, 8, 16, 0.5), 0 0 24px rgba(77, 163, 255, 0.45);
+  pointer-events: none;
+}
+
+#sel.locked {
+  background: rgba(77, 163, 255, 0.05);
+  border-color: rgba(77, 163, 255, 0.85);
+}
+
+/* The live watch box: a quiet outline that breathes while it is armed */
+#sel.watching {
+  border-color: rgba(77, 163, 255, 0.55);
+  background: rgba(77, 163, 255, 0.04);
+  animation: watch-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes watch-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(4, 8, 16, 0.5), 0 0 12px rgba(77, 163, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(4, 8, 16, 0.5), 0 0 26px rgba(77, 163, 255, 0.5);
+  }
+}
+
+#sel.flash {
+  animation: flash 0.7s ease-out 2;
+}
+
+@keyframes flash {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(4, 8, 16, 0.5), 0 0 24px rgba(77, 163, 255, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(150, 205, 255, 0.9), 0 0 44px rgba(77, 163, 255, 0.9);
+  }
+}
+
+/* Hint pill */
+#hint {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(10, 14, 22, 0.92);
+  border: 1px solid rgba(120, 160, 210, 0.35);
+  color: #dbe8f7;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Bots */
+.bot {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  left: -200px;
+  top: -200px;
+  opacity: 0;
+  will-change: left, top, opacity;
+}
+
+.bot-anim {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+}
+
+.bot-anim svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Answer bubble */
+#bubble {
+  position: fixed;
+  max-width: 340px;
+  min-width: 120px;
+  padding: 12px 15px;
+  border-radius: 14px;
+  background: rgba(16, 20, 29, 0.96);
+  border: 1px solid rgba(120, 160, 210, 0.28);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  color: #eef5ff;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+#bubble.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#bubble .label {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7f93aa;
+  margin-bottom: 4px;
+}
+
+#bubble .q {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #8fa3ba;
+  max-height: 88px;
+  overflow: hidden;
+}
+
+#bubble .a {
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.35;
+  color: #ffffff;
+  word-break: break-word;
+}
+
+#bubble.error {
+  border-color: rgba(248, 81, 73, 0.55);
+  background: rgba(38, 14, 16, 0.96);
+}
+
+#bubble.error .label {
+  color: #ff9a94;
+}
+
+#bubble.error .a {
+  color: #ffbdb8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Thinking dots */
+.dots {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4da3ff;
+  animation: dot 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}

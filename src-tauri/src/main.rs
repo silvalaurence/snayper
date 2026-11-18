@@ -87,7 +87,7 @@ fn log(app: &AppHandle, message: impl AsRef<str>) {
     use std::io::Write;
     let stamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
+        .map(|d| d.as_millis())
         .unwrap_or(0);
     if let Ok(dir) = app.path().app_config_dir() {
         let _ = std::fs::create_dir_all(&dir);
@@ -258,7 +258,7 @@ async fn watch_loop(app: AppHandle, epoch: u64) {
     }
 
     loop {
-        tokio::time::sleep(Duration::from_millis(400)).await;
+        tokio::time::sleep(Duration::from_millis(250)).await;
 
         let current = {
             let state = app.state::<AppState>();
@@ -272,14 +272,18 @@ async fn watch_loop(app: AppHandle, epoch: u64) {
             break;
         };
 
-        let shot = match capture::capture_primary() {
+        // Only the watched box is grabbed, straight off the screen; no
+        // full-monitor capture and no capture session setup per poll.
+        let (x, y, w, h) = rect.px();
+        let shot = match capture::capture_region(x, y, w, h) {
             Ok(shot) => shot,
-            Err(_) => continue,
+            Err(err) => {
+                log(&app, format!("watch: capture failed: {err:#}"));
+                continue;
+            }
         };
 
-        let (x, y, w, h) = rect.px();
-
-        let hash = capture::crop_hash(&shot, x, y, w, h);
+        let hash = capture::crop_hash(&shot, 0, 0, shot.width, shot.height);
         if hash == last_hash {
             continue;
         }
@@ -309,7 +313,7 @@ async fn watch_loop(app: AppHandle, epoch: u64) {
             break;
         }
 
-        let bytes = match capture::crop_png(&shot, x, y, w, h) {
+        let bytes = match capture::crop_png(&shot, 0, 0, shot.width, shot.height) {
             Ok(bytes) => bytes,
             Err(_) => continue,
         };

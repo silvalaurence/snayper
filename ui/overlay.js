@@ -12,10 +12,12 @@ let anchor = { x: 0, y: 0 };
 let selection = null;
 let snipBot = null;
 let answerBot = null;
+let streaming = null;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 function clearBubble() {
+  streaming = null;
   bubble.classList.add("hidden");
   bubble.classList.remove("show", "error");
   bubble.innerHTML = "";
@@ -172,7 +174,9 @@ function answerTarget() {
 function placeBubble() {
   if (!selection) return;
 
-  bubble.classList.remove("show");
+  // Fade in only on first appearance; later calls just keep it anchored.
+  const first = !bubble.classList.contains("show");
+  if (first) bubble.classList.remove("show");
   const rect = bubble.getBoundingClientRect();
   const gap = 16;
 
@@ -201,10 +205,11 @@ function placeBubble() {
   bubble.style.left = `${left}px`;
   bubble.style.top = `${top}px`;
 
-  requestAnimationFrame(() => bubble.classList.add("show"));
+  if (first) requestAnimationFrame(() => bubble.classList.add("show"));
 }
 
 function showThinking(question) {
+  streaming = null;
   bubble.classList.remove("hidden", "error");
   bubble.innerHTML = "";
   const q = document.createElement("div");
@@ -218,6 +223,14 @@ function showThinking(question) {
 }
 
 function showAnswer(text) {
+  if (streaming) {
+    // The stream already built the bubble; just settle its final text.
+    streaming.textContent = text;
+    streaming.classList.remove("streaming");
+    streaming = null;
+    placeBubble();
+    return;
+  }
   bubble.classList.remove("hidden", "error");
   bubble.innerHTML = "";
   const label = document.createElement("div");
@@ -230,7 +243,25 @@ function showAnswer(text) {
   placeBubble();
 }
 
+function onStream(text) {
+  if (!text) return;
+  if (!streaming) {
+    bubble.classList.remove("hidden", "error");
+    bubble.innerHTML = "";
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = "Answer";
+    const answer = document.createElement("div");
+    answer.className = "a streaming";
+    bubble.append(label, answer);
+    streaming = answer;
+  }
+  streaming.textContent = text;
+  placeBubble();
+}
+
 function showError(message) {
+  streaming = null;
   bubble.classList.remove("hidden");
   bubble.classList.add("error");
   bubble.innerHTML = "";
@@ -320,6 +351,8 @@ listen("stage", (event) => {
   else if (kind === "answer") onAnswer(text ?? "");
   else if (kind === "error") onError(text ?? "unknown error");
 });
+
+listen("stream", (event) => onStream(event.payload?.text ?? ""));
 
 listen("reset", () => resetOverlay());
 

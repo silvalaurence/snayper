@@ -23,6 +23,8 @@ Snip once.
 
 Snayper keeps watching that exact box. When the question inside it changes, Read Bot wakes up and Answer Bot answers — no second snip, no five-second apology tour, no "did you mean to re-read that?" Snip a different box and the watch follows you there.
 
+Answers stream into the bubble as they're written, so you can start reading before Answer Bot has finished being dramatic.
+
 ## Hotkeys
 
 | Keys | What happens |

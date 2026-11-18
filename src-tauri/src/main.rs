@@ -543,12 +543,32 @@ async fn reply(app: &AppHandle, cfg: &Config, question: &str) -> Result<String> 
     };
 
     let started = std::time::Instant::now();
-    let answer = providers::chat(
+    let mut first_delta: Option<Duration> = None;
+    let mut emitted = String::new();
+    let mut last_emit = started;
+    let mut sent_first = false;
+
+    let answer = providers::chat_stream(
         cfg,
         &cfg.system_prompt,
         &user,
-        None,
         &cfg.answer_model,
+        |delta| {
+            emitted.push_str(delta);
+            if first_delta.is_none() {
+                first_delta = Some(started.elapsed());
+            }
+            // Throttle DOM updates: providers can emit dozens of tiny deltas.
+            if !sent_first || last_emit.elapsed() >= Duration::from_millis(50) {
+                sent_first = true;
+                last_emit = std::time::Instant::now();
+                let _ = app.emit_to(
+                    "overlay",
+                    "stream",
+                    serde_json::json!({ "text": emitted }),
+                );
+            }
+        },
     )
     .await
     .map_err(|err| {
@@ -566,10 +586,11 @@ async fn reply(app: &AppHandle, cfg: &Config, question: &str) -> Result<String> 
     log(
         app,
         format!(
-            "answer {} ok in {:?} ({} chars)",
+            "answer {} ok in {:?} ({} chars, first token {:?})",
             cfg.answer_model,
             started.elapsed(),
-            answer.trim().chars().count()
+            answer.trim().chars().count(),
+            first_delta
         ),
     );
     Ok(answer.trim().to_string())

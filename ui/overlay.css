@@ -161,6 +161,25 @@ body {
   word-break: break-word;
 }
 
+/* Streaming caret: rides the growing text, disappears on the final answer */
+#bubble .a.streaming::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 0.85em;
+  margin-left: 3px;
+  border-radius: 1px;
+  background: #4da3ff;
+  vertical-align: -0.08em;
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
 #bubble.error {
   border-color: rgba(248, 81, 73, 0.55);
   background: rgba(38, 14, 16, 0.96);
